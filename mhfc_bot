@@ -1,0 +1,249 @@
+from selenium import webdriver as wd
+import chromedriver_binary
+import pandas as pd
+from selenium.webdriver.chrome.options import Options
+import requests
+import time
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException
+from selenium.webdriver.support import expected_conditions as EC
+import multiprocessing
+
+
+class Section: #class contains importent features of section
+    def __init__(self, element, section_num, section_amount):
+        self.element = element
+        self.section_num = section_num
+        self.section_amount = section_amount
+
+    def get_section_element(self):
+        return self.element
+
+    def get_section_amount(self):
+        return self.section_amount
+
+def launch_browser(login_link): # opening a new chrome page as mobile
+ mobile_emulation = {
+        "deviceMetrics": {"width": 360, "height": 720, "pixelRatio": 1.0},
+        "userAgent": "Mozilla/5.0 (Linux; Android 9; Pixel 3 XL) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Mobile Safari/537.36",
+    }
+ chrome_options = Options()
+ chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
+ chrome_path = r'C:\Users\97258\Desktop\chromedriver-win64\chromedriver.exe'
+ wb = wd.Chrome(executable_path=chrome_path, options=chrome_options)
+ wb.implicitly_wait(10)
+ wb.get(login_link)
+ wb.refresh() 
+ return wb
+
+def login_mhfc(wb,username,password): # make a login
+ username_field = wb.find_element_by_name('username')
+ username_field.send_keys(username)
+ password_field = wb.find_element_by_name('password')
+ password_field.send_keys(password)
+ login_button = wb.find_element_by_name('btnLogin')
+ login_button.click()
+
+def open_section_list(wb,cnt = 0):
+ section_button = wb.find_element_by_xpath("//span[contains(@class,'icon')]")
+ wb.implicitly_wait(2) 
+ time.sleep(0.3)
+ try:
+  section_button.click()
+  wb.implicitly_wait(10)
+ except ElementClickInterceptedException:
+  cnt += 1
+  print(cnt)
+  wb.refresh()
+  time.sleep(0.3)
+  # open_section_list(wb, cnt)
+  
+      
+def make_section_list(wb): #make sorted section list by amount,section num
+  wb.implicitly_wait(10)
+  open_section_list(wb)
+  area_elements = wb.find_elements_by_xpath("//div[@class='area-info-container']")
+  while len(area_elements) < 1:
+   wb.refresh()  
+   time.sleep(0.3)
+   open_section_list(wb)
+   area_elements = wb.find_elements_by_xpath("//div[@class='area-info-container']")
+    
+  wb.implicitly_wait(10)  
+  sections = []
+    
+  for area_element in area_elements:
+   h3_element = area_element.find_element_by_tag_name("h3")
+   section_name = h3_element.text.split()
+   section_num = int(section_name[-1])
+   section_amount = int(area_element.find_element_by_class_name("amount").text)
+   print(section_num)
+   section = Section(area_element, section_num, section_amount)
+   sections.append(section)
+        
+  sorted_sections = sorted(sections, key=lambda x: (x.section_amount, -x.section_num), reverse=True)
+  return sorted_sections
+   
+    
+
+def find_seats(wb): # choose random seats by site autmutaion button
+ find_seats = wb.find_element_by_xpath("//button[@id='baTab']")
+ find_seats.click()
+
+def choose_best_section(wb,section_list,method): #choose the best section by method
+ available_section_found = False 
+ while wb:
+  for section in section_list:   
+   if(method == 1): # find tickets to north area
+    if (section.section_num > 100 and section.section_num < 110) or (section.section_num > 200 and section.section_num < 213):
+     available_section_found = True
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     return section
+
+     
+   elif (method == 2): # find tickets to the center of the pitch, without silver
+    if (section.section_num > 112 and section.section_num < 120) or (section.section_num > 216 and section.section_num < 224):
+     available_section_found = Tr
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     find_seats(wb)
+     return section
+     
+        
+   elif(method == 3): # find tickets any place
+    if (section.section_num > 100 and section.section_num < 110) or (section.section_num > 200 and section.section_num < 213):
+     available_section_found = True
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     return section
+     break
+    elif (section.section_num < 400):
+     available_section_found = True
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     find_seats(wb)
+     return section
+
+   elif(method == 4): # find tickets anywhere besides south and gold
+    if (section.section_num > 100 and section.section_num < 110) or (section.section_num > 200 and section.section_num < 213):
+     available_section_found = True
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     return section
+     break
+    elif (section.section_num > 109 and section.section_num < 123) or (section.section_num > 212 and section.section_num < 228) or (section.section_num > 300 and section.section_num < 306) or (section.section_num > 308 and section.section_num < 313):
+     available_section_found = True
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     find_seats(wb)
+     return section
+  
+   
+   elif(method == 5): # find tickets to the north and specific section 
+    if (section.section_num > 100 and section.section_num < 110) or (section.section_num > 200 and section.section_num < 213):
+     available_section_found = True
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     return section
+     break
+    elif section.section_num == 229:
+     available_section_found = True
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     find_seats(wb)
+     return section         
+
+   elif(method == 6): # find tickets anywhere besides silver and gold
+    if (section.section_num > 100 and section.section_num < 110) or (section.section_num > 200 and section.section_num < 213):
+     available_section_found = True
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     return section
+     break
+    elif (section.section_num > 109 and section.section_num < 133) or (section.section_num > 212 and section.section_num < 241):
+     available_section_found = True
+     wb.execute_script("window.scrollBy(0, 500);")
+     section.element.click()
+     find_seats(wb)
+     return section
+             
+      
+   
+  wb.refresh()
+  time.sleep(0.3)
+  section_list = make_section_list(wb)
+
+def add_to_cart(wb,best_section,amount): # add tickets to the cart
+    partial_class = "ui-icon-triangle-1-n" 
+    add_ticket = WebDriverWait(wb, 10).until(
+    EC.element_to_be_clickable((By.XPATH, f"//*[contains(@class, '{partial_class}')]")))
+    wb.execute_script("arguments[0].scrollIntoView();", add_ticket)
+
+    if best_section.section_amount < amount:
+        for i in range(best_section.section_amount):
+            add_ticket.click()
+    else:
+        for i in range(amount):
+            add_ticket.click()
+            
+    add_to_cart_btn = wb.find_element_by_xpath("//a[@id='btnProceed']")
+    add_to_cart_btn.click()
+    
+
+def send_telegram_message(message, section_num): #send telegram messege that a ticket has been found
+    chat_id = "-819945328"
+    bot_token = "5859153132:AAHva7RSPGoN1XQ_DD1EcHwRaWrw-ozzpVk"
+    base_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    params = {
+        "chat_id": chat_id,
+        "text": f"{message}\nSection Number: {section_num}",  # Include section_num in the message
+    }
+
+    response = requests.post(base_url, params=params)
+    '''if response.ok:
+        print("Message sent successfully!")
+    else:
+        print(f"Failed to send message. Error code: {response.status_code}, Error message: {response.text}")'''
+    
+def worker(login_link, username, password,method,num_of_tickets):
+    try:
+        wb = launch_browser(login_link)
+        login_mhfc(wb, username, password)
+        # section_list = make_section_list(wb)
+        best_section = choose_best_section(wb, section_list, method)
+        print(best_section.section_num)
+        add_to_cart(wb, best_section, num_of_tickets)
+        print(best_section.section_num)
+        send_telegram_message("I found tickets", best_section.section_num)
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+ 
+if __name__ == "__main__":
+ username = "yardentziar@gmail.com"
+ password = "Almog1234"
+ login_link = "https://tickets.mhaifafc.com/crmlogin.aspx?next=loader.aspx/?target=hall.aspx%3Fevent%3D1436"
+ max_retries = 7
+ retry_count = 0
+    
+ while retry_count < max_retries:
+        try:
+            wb = launch_browser(login_link)
+            login_mhfc(wb, username, password)
+            section_list = make_section_list(wb)
+            best_section = choose_best_section(wb, section_list, 1)
+            print(best_section.section_num)
+            add_to_cart(wb, best_section, 1)
+            print(best_section.section_num)
+            send_telegram_message("I found tickets", best_section.section_num)
+            break  # Break the loop if the code executes without errors
+        except Exception as e:
+            print(f"An error occurred: {str(e)}")
+            retry_count += 1
+            print(f"Retrying... (Attempt {retry_count}/{max_retries})")
+
+
+            
+
+
