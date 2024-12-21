@@ -193,8 +193,8 @@ def add_to_cart(wb,best_section,amount): # add tickets to the cart
     
 
 def send_telegram_message(message, section_num): #send telegram messege that a ticket has been found
-    chat_id = "-819945328"
-    bot_token = "5859153132:AAHva7RSPGoN1XQ_DD1EcHwRaWrw-ozzpVk"
+    chat_id = ""
+    bot_token = ""
     base_url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     params = {
         "chat_id": chat_id,
@@ -221,8 +221,8 @@ def worker(login_link, username, password,method,num_of_tickets):
         print(f"An error occurred: {str(e)}")
  
 if __name__ == "__main__":
- username = "yardentziar@gmail.com"
- password = "Almog1234"
+ username = ""
+ password = ""
  login_link = "https://tickets.mhaifafc.com/crmlogin.aspx?next=loader.aspx/?target=hall.aspx%3Fevent%3D1436"
  max_retries = 7
  retry_count = 0
